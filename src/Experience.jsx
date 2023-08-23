@@ -3,11 +3,34 @@ import {
     useGLTF,
     useTexture,
     Center,
-    Sparkles
+    Sparkles,
+    shaderMaterial
 } from '@react-three/drei'
+import * as THREE from 'three'
+import { extend, useFrame } from '@react-three/fiber'
+import { useRef } from 'react'
+import portalVertexShader from './shaders/portal/vertex.glsl'
+import portalFragmentShader from './shaders/portal/fragment.glsl'
+
+const PortalMaterial = shaderMaterial({
+    uTime: 0,
+    uColor: new THREE.Color('#3C1F6B'),
+    uColorEnd: new THREE.Color('#9b09c4')
+},
+    portalVertexShader,
+    portalFragmentShader
+)
+
+extend({ PortalMaterial })
 
 export default function Experience() {
     const { nodes } = useGLTF('./model/portal.glb')
+
+    const portalMaterial = useRef()
+
+    useFrame((state, delta) => {
+        portalMaterial.current.uTime += delta
+    })
 
     const bakedTexture = useTexture('./model/baked.jpg')
     bakedTexture.flipY = false
@@ -42,7 +65,7 @@ export default function Experience() {
                 geometry={nodes.portalLight.geometry}
                 position={nodes.portalLight.position}
             >
-                <meshBasicMaterial color={'#3C1F6B'} />
+                <portalMaterial ref={portalMaterial} />
             </mesh>
 
             <Sparkles
